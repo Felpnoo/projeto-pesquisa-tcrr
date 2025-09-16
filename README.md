@@ -21,13 +21,11 @@ pip install -r requirements.txt
 ```
 
 ## 4. Configurando variáveis de ambiente
-Crie o arquivo `.env` na pasta `mvp_sem_rag_openai_pkg2` com o seguinte conteúdo:
-```ini
-LLM_PROVIDER=GOOGLE
-GOOGLE_API_KEY=coloque_sua_chave_gemini_aqui
-GOOGLE_MODEL=gemini-pro
-UPLOAD_DIR=uploads
+Copie o arquivo de exemplo:
+```bash
+cp .env.example .env
 ```
+Abra o arquivo `.env` e preencha sua chave Gemini em `GOOGLE_API_KEY`.
 
 ## 5. Rodando o sistema (sem Docker)
 ```bash
