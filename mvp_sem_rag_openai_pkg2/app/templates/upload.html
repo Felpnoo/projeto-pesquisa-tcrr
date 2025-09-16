@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload e Avaliação de PDF</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 700px; margin: auto; }
+        input, button, textarea { margin-top: 10px; width: 100%; padding: 8px; }
+        .result { margin-top: 20px; background: #f6f6f6; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Upload de PDFs</h2>
+    <form id="uploadForm">
+        <input type="file" id="pdfFile" accept="application/pdf" multiple required />
+        <button type="submit">Enviar PDFs</button>
+    </form>
+    <div class="result" id="uploadResult"></div>
+    <div id="scanSection" class="hidden">
+        <h3>Buscar páginas relevantes</h3>
+        <input type="text" id="criterio" placeholder="Critério (ex: eficiencia_energetica)" required />
+        <input type="text" id="palavrasChave" placeholder="Palavras-chave separadas por vírgula" />
+        <input type="number" id="maxPaginas" placeholder="Máx. páginas (ex: 5)" value="5" min="1" />
+        <input type="number" id="contexto" placeholder="Contexto (ex: 1)" value="1" min="0" />
+        <button id="scanBtn">Buscar páginas</button>
+        <div class="result" id="scanResult"></div>
+    </div>
+    <div id="evaluateSection" class="hidden">
+        <h3>Avaliar páginas</h3>
+        <button id="evaluateBtn">Avaliar páginas sugeridas</button>
+        <div class="result" id="evaluateResult"></div>
+    </div>
+    <div id="validateSection" class="hidden">
+        <h3>Validar resultado</h3>
+        <input type="number" id="nPaginas" placeholder="Total de páginas do documento" min="1" />
+        <button id="validateBtn">Validar avaliação</button>
+        <div class="result" id="validateResult"></div>
+    </div>
+    <div id="consolidateSection" class="hidden">
+        <h3>Consolidar resultados</h3>
+        <input type="text" id="docId" placeholder="ID do documento (opcional)" />
+        <textarea id="pesos" placeholder='Pesos (JSON, ex: {"eficiencia_energetica": 0.5, "outro": 0.5})'></textarea>
+        <button id="consolidateBtn">Consolidar</button>
+        <div class="result" id="consolidateResult"></div>
+    </div>
+</div>
+<script>
+let docPaths = [];
+let paginasSugeridas = [];
+let resultadoAvaliacao = null;
+
+// Upload múltiplos arquivos
+const uploadForm = document.getElementById('uploadForm');
+const uploadResult = document.getElementById('uploadResult');
+uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById('pdfFile');
+    if (!fileInput.files.length) return;
+    uploadResult.textContent = 'Enviando arquivos...';
+    docPaths = [];
+    let results = [];
+    for (const file of fileInput.files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const resp = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            if (!resp.ok) throw new Error('Falha no upload de ' + file.name);
+            const data = await resp.json();
+            docPaths.push(data.doc_path);
+            results.push('✔️ ' + file.name + ': ' + data.doc_path);
+        } catch (err) {
+            results.push('❌ ' + file.name + ': ' + err.message);
+        }
+    }
+    uploadResult.textContent = results.join('\n');
+    if (docPaths.length > 0) {
+        document.getElementById('scanSection').classList.remove('hidden');
+    }
+});
+
+// Scan (apenas para o primeiro arquivo)
+const scanBtn = document.getElementById('scanBtn');
+const scanResult = document.getElementById('scanResult');
+scanBtn.addEventListener('click', async () => {
+    const criterio = document.getElementById('criterio').value.trim();
+    const palavrasChave = document.getElementById('palavrasChave').value.split(',').map(s => s.trim()).filter(Boolean);
+    const maxPaginas = parseInt(document.getElementById('maxPaginas').value) || 5;
+    const contexto = parseInt(document.getElementById('contexto').value) || 1;
+    if (!docPaths.length || !criterio) {
+        scanResult.textContent = 'Informe o critério e faça o upload primeiro.';
+        return;
+    }
+    scanResult.textContent = 'Buscando páginas...';
+    try {
+        const resp = await fetch('/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                doc_path: docPaths[0],
+                criterio,
+                palavras_chave: palavrasChave,
+                max_paginas: maxPaginas,
+                contexto
+            })
+        });
+        if (!resp.ok) throw new Error('Falha na busca');
+        const data = await resp.json();
+        paginasSugeridas = data.paginas;
+        scanResult.textContent = 'Páginas sugeridas: ' + paginasSugeridas.join(', ');
+        document.getElementById('evaluateSection').classList.remove('hidden');
+    } catch (err) {
+        scanResult.textContent = 'Erro: ' + err.message;
+    }
+});
+
+// Evaluate (apenas para o primeiro arquivo)
+const evaluateBtn = document.getElementById('evaluateBtn');
+const evaluateResult = document.getElementById('evaluateResult');
+evaluateBtn.addEventListener('click', async () => {
+    const criterio = document.getElementById('criterio').value.trim();
+    if (!docPaths.length || !criterio || !paginasSugeridas.length) {
+        evaluateResult.textContent = 'Faça o upload e a busca primeiro.';
+        return;
+    }
+    evaluateResult.textContent = 'Avaliando...';
+    try {
+        const resp = await fetch('/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                doc_path: docPaths[0],
+                criterio,
+                paginas: paginasSugeridas
+            })
+        });
+        if (!resp.ok) throw new Error('Falha na avaliação');
+        const data = await resp.json();
+        resultadoAvaliacao = data;
+        evaluateResult.textContent = 'Resultado da avaliação:\n' + JSON.stringify(data, null, 2);
+        document.getElementById('validateSection').classList.remove('hidden');
+    } catch (err) {
+        evaluateResult.textContent = 'Erro: ' + err.message;
+    }
+});
+
+// Validate (apenas para o primeiro arquivo)
+const validateBtn = document.getElementById('validateBtn');
+const validateResult = document.getElementById('validateResult');
+validateBtn.addEventListener('click', async () => {
+    const nPaginas = parseInt(document.getElementById('nPaginas').value);
+    if (!docPaths.length || !resultadoAvaliacao || !nPaginas) {
+        validateResult.textContent = 'Preencha todos os campos e faça a avaliação primeiro.';
+        return;
+    }
+    validateResult.textContent = 'Validando...';
+    try {
+        const resp = await fetch('/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                doc_path: docPaths[0],
+                n_paginas: nPaginas,
+                resultados: [resultadoAvaliacao]
+            })
+        });
+        if (!resp.ok) throw new Error('Falha na validação');
+        const data = await resp.json();
+        validateResult.textContent = 'Resultado da validação:\n' + JSON.stringify(data, null, 2);
+        document.getElementById('consolidateSection').classList.remove('hidden');
+    } catch (err) {
+        validateResult.textContent = 'Erro: ' + err.message;
+    }
+});
+
+// Consolidate (apenas para o primeiro arquivo)
+const consolidateBtn = document.getElementById('consolidateBtn');
+const consolidateResult = document.getElementById('consolidateResult');
+consolidateBtn.addEventListener('click', async () => {
+    const docId = document.getElementById('docId').value.trim();
+    let pesos = document.getElementById('pesos').value.trim();
+    if (!resultadoAvaliacao) {
+        consolidateResult.textContent = 'Faça a avaliação primeiro.';
+        return;
+    }
+    let pesosObj = null;
+    if (pesos) {
+        try { pesosObj = JSON.parse(pesos); } catch { consolidateResult.textContent = 'Pesos inválidos (JSON)!'; return; }
+    }
+    consolidateResult.textContent = 'Consolidando...';
+    try {
+        const resp = await fetch('/consolidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                doc_id: docId || undefined,
+                resultados: [resultadoAvaliacao],
+                pesos: pesosObj
+            })
+        });
+        if (!resp.ok) throw new Error('Falha na consolidação');
+        const data = await resp.json();
+        consolidateResult.textContent = 'Resultado da consolidação:\n' + JSON.stringify(data, null, 2);
+    } catch (err) {
+        consolidateResult.textContent = 'Erro: ' + err.message;
+    }
+});
+</script>
+</body>
+</html>

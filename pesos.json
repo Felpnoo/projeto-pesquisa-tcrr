@@ -1,0 +1,9 @@
+{
+  "eficiencia_energetica": 0.25,
+  "normas_tecnicas": 0.2,
+  "rotulagem": 0.1,
+  "verificacao_ensaio": 0.2,
+  "emissoes": 0.15,
+  "uso_de_agua": 0.05,
+  "materiais_reciclabilidade": 0.05
+}

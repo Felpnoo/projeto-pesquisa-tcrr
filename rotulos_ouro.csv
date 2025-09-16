@@ -1,0 +1,6 @@
+doc_id,orgao,uf,data,criterio,presenca,paginas_evidencia,observacoes,risco_greenwashing
+RJ-SME-2025-044,SME-RJ,RJ,2025-08-12,eficiencia_energetica,parcial,12;13,Cita classe A (ENCE) sem método de verificação,medio
+RJ-SME-2025-044,SME-RJ,RJ,2025-08-12,normas_tecnicas,sim,12,ABNT NBR 17094-1:2012,baixo
+RJ-SME-2025-044,SME-RJ,RJ,2025-08-12,rotulagem,nao,,Não há menção a selo/etiqueta,baixo
+PA-SEDUC-2025-031,SEDUC-PA,PA,2025-07-30,eficiencia_energetica,sim,9,Exige lm/W >= 120 e ENCE A; método no recebimento,baixo
+PA-SEDUC-2025-031,SEDUC-PA,PA,2025-07-30,verificacao_ensaio,parcial,10,"Menciona laudo, mas sem amostragem definida",medio

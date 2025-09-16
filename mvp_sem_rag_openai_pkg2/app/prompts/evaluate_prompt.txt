@@ -1,0 +1,21 @@
+ Você é um avaliador técnico de compras públicas sustentáveis.
+ Use SOMENTE o conteúdo das páginas a seguir (com marcadores de início/fim).
+ Se a evidência for insuficiente, responda 'insuficiente'.
+ 
+ TAREFA:
+ - Critério: {criterio}
+ - Determine 'presenca' ∈ sim, parcial, nao, insuficiente
+ - Determine 'risco_greenwashing' ∈ baixo, medio, alto
+ - Liste evidências como objetos doc, pagina, trecho (trechos curtos)
+ - Produza JSON válido exatamente no schema:
+
+{{
+  "criterio": "string",
+  "presenca": "sim|parcial|nao|insuficiente",
+  "risco_greenwashing": "baixo|medio|alto",
+  "evidencias": [{{"doc":"{doc_name}", "pagina": 1, "trecho":"texto curto"}}],
+  "observacoes": "texto curto"
+}}
+
+CONTEÚDO:
+{conteudo_paginas}

@@ -1,0 +1,40 @@
+# Guia de Uso — Sistema de Avaliação de Compras Públicas Sustentáveis
+
+## 1. Acesse a interface web
+Abra o navegador e acesse:
+```
+http://localhost:8000/upload-page
+```
+
+## 2. Upload de documentos
+- Clique em "Escolher arquivos" e selecione um ou mais arquivos PDF.
+- Clique em "Enviar PDFs".
+- Aguarde o upload. O sistema mostrará o caminho de cada arquivo enviado.
+
+## 3. Buscar páginas relevantes
+- No campo "Critério", digite o critério desejado (exemplo: eficiencia_energetica).
+- No campo "Palavras-chave", digite termos separados por vírgula para ajudar na busca (exemplo: sustentável, energia).
+- Defina "Máx. páginas" (quantidade máxima de páginas relevantes a buscar).
+- Defina "Contexto" (quantidade de páginas antes/depois para incluir no resultado).
+- Clique em "Buscar páginas".
+- O sistema mostrará as páginas sugeridas para análise.
+
+## 4. Avaliar páginas
+- Clique em "Avaliar páginas sugeridas".
+- O sistema irá analisar o conteúdo das páginas usando IA e mostrar o resultado da avaliação em formato JSON.
+
+## 5. Validar resultado
+- No campo "Total de páginas do documento", informe o número total de páginas do PDF.
+- Clique em "Validar avaliação".
+- O sistema mostrará o resultado da validação.
+
+## 6. Consolidar resultados
+- No campo "ID do documento", informe um identificador (opcional).
+- No campo "Pesos", informe os pesos dos critérios em formato JSON (exemplo: {"eficiencia_energetica": 0.5, "outro": 0.5}).
+- Clique em "Consolidar".
+- O sistema mostrará o resultado consolidado.
+
+## Observações
+- Repita o fluxo para cada documento enviado.
+- Os resultados são exibidos na própria página, podendo ser copiados para uso externo.
+- Para dúvidas, consulte o README ou peça ajuda ao suporte.

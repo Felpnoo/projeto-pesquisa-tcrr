@@ -1,0 +1,41 @@
+# Ignorar arquivos e pastas desnecessários no projeto principal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+*.sqlite3
+
+# Virtualenv
+.venv/
+venv/
+ENV/
+
+# Docker
+*.log
+*.pid
+
+# Uploads e arquivos temporários
+uploads/
+*.tmp
+*.bak
+
+# VSCode
+.vscode/
+
+# Outros
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# PDFs e arquivos de teste
+*.pdf
+
+# Subpasta do projeto
+mvp_sem_rag_openai_pkg2/uploads/
+mvp_sem_rag_openai_pkg2/.venv/
+mvp_sem_rag_openai_pkg2/.env

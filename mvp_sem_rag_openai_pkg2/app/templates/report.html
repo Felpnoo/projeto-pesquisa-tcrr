@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Relatório - {{ c.doc_id }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    h1 { margin-bottom: 0; }
+    .score { font-size: 1.1rem; margin: 8px 0 16px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+    th { background: #f4f4f4; text-align: left; }
+    .tag { display:inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+    .ok { background:#e6ffed; border:1px solid #b6f2c1; }
+    .warn { background:#fff9e6; border:1px solid #ffe2a1; }
+    .bad { background:#ffecec; border:1px solid #ffb3b3; }
+  </style>
+</head>
+<body>
+  <h1>Relatório de Aderência Sustentável</h1>
+  <div class="score"><strong>Documento:</strong> {{ c.doc_id }} | <strong>Escore:</strong> {{ c.escore_aderencia }} / 100</div>
+
+  {% if c.flags.greenwashing_alto or c.flags.itens_insuficientes %}
+  <h2>Flags</h2>
+  <ul>
+    {% if c.flags.greenwashing_alto %}<li><strong>Greenwashing alto:</strong> {{ c.flags.greenwashing_alto | join(", ") }}</li>{% endif %}
+    {% if c.flags.itens_insuficientes %}<li><strong>Itens insuficientes:</strong> {{ c.flags.itens_insuficientes | join(", ") }}</li>{% endif %}
+  </ul>
+  {% endif %}
+
+  <h2>Resultados por critério</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Critério</th>
+        <th>Presença</th>
+        <th>Risco de Greenwashing</th>
+        <th>Evidências (doc / página / trecho)</th>
+        <th>Observações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in c.resultados %}
+      <tr>
+        <td>{{ r.criterio }}</td>
+        <td>
+          {% if r.presenca == 'sim' %}<span class="tag ok">sim</span>
+          {% elif r.presenca == 'parcial' %}<span class="tag warn">parcial</span>
+          {% elif r.presenca == 'nao' %}<span class="tag bad">não</span>
+          {% else %}<span class="tag bad">insuficiente</span>{% endif %}
+        </td>
+        <td>
+          {% if r.risco_greenwashing == 'baixo' %}<span class="tag ok">baixo</span>
+          {% elif r.risco_greenwashing == 'medio' %}<span class="tag warn">médio</span>
+          {% else %}<span class="tag bad">alto</span>{% endif %}
+        </td>
+        <td>
+          <ul style="margin:0; padding-left:16px;">
+            {% for ev in r.evidencias %}
+              <li><strong>{{ ev.doc }}</strong> — pág. {{ ev.pagina }} — <em>{{ ev.trecho }}</em></li>
+            {% endfor %}
+          </ul>
+        </td>
+        <td>{{ r.observacoes or "" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
