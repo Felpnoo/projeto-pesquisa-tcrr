@@ -47,6 +47,60 @@ Acesse no navegador:
 http://localhost:8000/upload-page
 ```
 
+## Instruções para usuários Windows
+
+> **Recomendação:** Use Docker para evitar problemas de ambiente no Windows.
+
+### Usando Docker (principal)
+1. Instale o [Docker Desktop](https://www.docker.com/products/docker-desktop/) para Windows.
+2. Abra o terminal (PowerShell ou CMD) e navegue até a pasta do projeto:
+   ```powershell
+   cd caminho\para\projeto-pesquisa-tcrr\mvp_sem_rag_openai_pkg2
+   ```
+3. Construa a imagem Docker:
+   ```powershell
+   docker build -t meuapp-gemini .
+   ```
+4. Copie o arquivo de exemplo de ambiente:
+   ```powershell
+   copy .env.example .env
+   # Edite .env e coloque sua chave Gemini
+   ```
+5. Rode o container:
+   ```powershell
+   docker run --env-file .env -p 8000:8000 meuapp-gemini
+   ```
+6. Acesse no navegador:
+   ```
+   http://localhost:8000/upload-page
+   ```
+
+### (Opcional) Ambiente Python local
+1. Instale o [Python 3.12 para Windows](https://www.python.org/downloads/windows/).
+2. Crie e ative o ambiente virtual:
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+3. Instale as dependências:
+   ```powershell
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+4. Copie o arquivo de exemplo:
+   ```powershell
+   copy .env.example .env
+   # Edite .env e coloque sua chave Gemini
+   ```
+5. Rode o servidor:
+   ```powershell
+   uvicorn app.main:app --reload
+   ```
+6. Acesse no navegador:
+   ```
+   http://localhost:8000/upload-page
+   ```
+
 ## 7. Tutorial de uso
 Veja o arquivo `Como usar o sistema passo a passo.txt` para o guia detalhado do fluxo completo (upload, busca, avaliação, validação e consolidação).
 

@@ -1,0 +1,305 @@
+---
+## Como criar o rótulo ouro (ground truth)
+
+O rótulo ouro é criado manualmente por especialistas, que avaliam cada edital e cada critério, registrando a resposta correta ("sim", "parcial", "não") para cada caso. Esse processo garante uma referência confiável para medir a acurácia dos métodos automáticos.
+
+### Passos para criar o rótulo ouro:
+1. **Selecione os editais:** Defina quais documentos serão usados como amostra.
+2. **Defina os critérios:** Use os critérios já padronizados no projeto.
+3. **Preencha a tabela:** Para cada edital e critério, registre a resposta correta segundo a interpretação humana.
+4. **Valide com especialistas:** Se possível, envolva mais de uma pessoa e discuta divergências para garantir consenso e qualidade.
+5. **Salve em formato estruturado:** Recomenda-se usar CSV, Excel ou Google Sheets.
+
+### Template de CSV para rótulo ouro:
+```
+edital_id,criterio,resposta_ouro
+123,criterio_1,sim
+123,criterio_2,parcial
+124,criterio_1,nao
+...etc
+```
+
+### Dicas:
+- Mantenha o formato padronizado para facilitar a comparação automática.
+- Documente as regras de interpretação para cada critério, se possível.
+- Guarde o arquivo como `rotulos_ouro.csv` na raiz do projeto.
+---
+## Como comparar acurácia usando rótulo ouro
+
+Para medir acurácia (ou outras métricas), é necessário ter uma referência considerada perfeita, chamada de rótulo ouro (ground truth). No projeto, usamos o arquivo `rotulos_ouro.csv` como gabarito dos resultados corretos para cada critério em cada edital.
+
+### Passos para comparar acurácia:
+1. **Preparar o rótulo ouro:**
+  - O arquivo `rotulos_ouro.csv` deve conter, para cada edital e critério, o valor correto (ex: "sim", "parcial", "não").
+2. **Obter as respostas dos métodos:**
+  - Rodar a LLM (baseline) e o app (pipeline + LLM) nos mesmos editais, gerando respostas para cada critério.
+3. **Comparar com o rótulo ouro:**
+  - Para cada critério, comparar a resposta do método com o valor do rótulo ouro.
+4. **Calcular métricas:**
+  - **Acurácia:** % de respostas corretas (iguais ao rótulo ouro).
+  - **Precisão, recall, F1:** Podem ser calculados para cada classe ("sim", "parcial", "não") ou para o conjunto.
+
+### Exemplo de estrutura do rótulo ouro:
+```
+edital_id,criterio,resposta_ouro
+123,criterio_1,sim
+123,criterio_2,parcial
+124,criterio_1,nao
+...etc
+```
+
+### Exemplo de cálculo de acurácia:
+Suponha que para 100 critérios avaliados, o app acertou 85 e a LLM baseline acertou 70:
+- Acurácia do app: 85%
+- Acurácia da LLM baseline: 70%
+
+### Ferramentas para cálculo:
+- Pode usar Python (pandas, sklearn.metrics) para comparar os arquivos de resultados e calcular as métricas.
+
+Se quiser um script pronto para isso, só pedir!
+# Notas de Análise e Critérios para Editais
+
+Este arquivo serve para registrar ideias, critérios, pesos, justificativas e observações sobre a avaliação dos editais, sem relação direta com o código.
+
+
+# Notas de análise e critérios
+
+---
+
+## 1. Critérios e pesos para avaliação
+
+Descreva aqui os critérios utilizados para avaliar os editais e os pesos atribuídos a cada um. Estes critérios são usados tanto pelo app quanto pela LLM baseline.
+
+---
+
+## 2. Prompt utilizada para análise
+
+A prompt padronizada utilizada no programa para gerar as respostas da LLM está em `app/prompts/evaluate_prompt.txt` e também pode ser consultada abaixo:
+
+...prompt copiada ou resumida...
+
+---
+
+## 3. Diferença entre baseline LLM e app (pipeline + LLM)
+
+No nosso caso, a baseline será a LLM genérica (ex: Gemini, ChatGPT) respondendo apenas ao prompt padronizado, sem pré-processamento ou regras extras. O objetivo é provar que o nosso produto — que utiliza uma LLM integrada a um pipeline de análise, extração de evidências, validação e consolidação — é superior em precisão, auditabilidade e utilidade.
+
+Você pode usar esses critérios e pesos para comparar:
+- **Resultados da LLM (baseline):** Resposta direta da LLM ao prompt, sem regras extras.
+- **Resultados do app (pipeline + LLM):** O app avalia cada critério nos editais, atribuindo "sim", "parcial" ou "não", extraindo evidências e calculando um escore ponderado pelos pesos.
+
+---
+
+## 4. Como comparar acurácia usando rótulo ouro
+
+Para medir acurácia (ou outras métricas), é necessário ter uma referência considerada perfeita, chamada de rótulo ouro (ground truth). No projeto, usamos o arquivo `rotulos_ouro.csv` como gabarito dos resultados corretos para cada critério em cada edital.
+
+### Passos para comparar acurácia:
+1. **Preparar o rótulo ouro:**
+  - O arquivo `rotulos_ouro.csv` deve conter, para cada edital e critério, o valor correto (ex: "sim", "parcial", "não").
+2. **Obter as respostas dos métodos:**
+  - Rodar a LLM (baseline) e o app (pipeline + LLM) nos mesmos editais, gerando respostas para cada critério.
+3. **Comparar com o rótulo ouro:**
+  - Para cada critério, comparar a resposta do método com o valor do rótulo ouro.
+4. **Calcular métricas:**
+  - **Acurácia:** % de respostas corretas (iguais ao rótulo ouro).
+  - **Precisão, recall, F1:** Podem ser calculados para cada classe ("sim", "parcial", "não") ou para o conjunto.
+
+### Exemplo de estrutura do rótulo ouro:
+```
+edital_id,criterio,resposta_ouro
+123,criterio_1,sim
+123,criterio_2,parcial
+124,criterio_1,nao
+...etc
+```
+
+### Exemplo de cálculo de acurácia:
+Suponha que para 100 critérios avaliados, o app acertou 85 e a LLM baseline acertou 70:
+- Acurácia do app: 85%
+- Acurácia da LLM baseline: 70%
+
+### Ferramentas para cálculo:
+- Pode usar Python (pandas, sklearn.metrics) para comparar os arquivos de resultados e calcular as métricas.
+
+Se quiser um script pronto para isso, só pedir!
+
+---
+
+## 5. Como criar o rótulo ouro (ground truth)
+
+O rótulo ouro é criado manualmente por especialistas, que avaliam cada edital e cada critério, registrando a resposta correta ("sim", "parcial", "não") para cada caso. Esse processo garante uma referência confiável para medir a acurácia dos métodos automáticos.
+
+### Passos para criar o rótulo ouro:
+1. **Selecione os editais:** Defina quais documentos serão usados como amostra.
+2. **Defina os critérios:** Use os critérios já padronizados no projeto.
+3. **Preencha a tabela:** Para cada edital e critério, registre a resposta correta segundo a interpretação humana.
+4. **Valide com especialistas:** Se possível, envolva mais de uma pessoa e discuta divergências para garantir consenso e qualidade.
+5. **Salve em formato estruturado:** Recomenda-se usar CSV, Excel ou Google Sheets.
+
+### Template de CSV para rótulo ouro:
+```
+edital_id,criterio,resposta_ouro
+123,criterio_1,sim
+123,criterio_2,parcial
+124,criterio_1,nao
+...etc
+```
+
+### Dicas:
+- Mantenha o formato padronizado para facilitar a comparação automática.
+- Documente as regras de interpretação para cada critério, se possível.
+- Guarde o arquivo como `rotulos_ouro.csv` na raiz do projeto.
+
+---
+
+
+## Critérios sugeridos para análise
+- Eficiência energética
+- Normas técnicas
+- Rotulagem/selos
+- Verificação/ensaio
+- Embalagem/Logística reversa (opcional)
+
+## Pesos recomendados (totalizando 1.0)
+Modelo 1 (com embalagem):
+```
+eficiência_energetica: 0.35
+normas_tecnicas: 0.25
+rotulagem: 0.15
+verificacao_ensaio: 0.15
+embalagem_logistica: 0.10
+```
+Modelo 2 (apenas principais):
+```
+eficiência_energetica: 0.4
+normas_tecnicas: 0.3
+rotulagem: 0.15
+verificacao_ensaio: 0.15
+```
+
+## Justificativas dos pesos
+- Eficiência energética: maior impacto ambiental e facilidade de verificação.
+- Normas técnicas: garantem segurança e conformidade.
+- Rotulagem/selos: rastreabilidade e credibilidade.
+- Verificação/ensaio: comprovação prática das exigências.
+- Embalagem/logística: relevante para sustentabilidade, mas nem sempre presente.
+
+## Observações gerais
+- Os pesos podem ser ajustados conforme prioridade do órgão ou contexto do edital.
+- Critérios podem ser adaptados para outros tipos de compras públicas.
+- Sugestão: registrar aqui toda ideia, ajuste ou justificativa que não seja código.
+
+---
+
+## Explicação dos critérios e pesos
+
+### Como funcionam os critérios
+Cada critério representa um aspecto relevante para avaliar a sustentabilidade e conformidade dos editais:
+- **Eficiência energética:** Mede se o edital exige produtos com baixo consumo de energia ou alta performance energética.
+- **Normas técnicas:** Verifica se há exigência de normas reconhecidas (ABNT, ISO), garantindo qualidade e segurança.
+- **Rotulagem/selos:** Avalia se o edital exige selos ou etiquetas oficiais, que comprovam certificação ambiental.
+- **Verificação/ensaio:** Checa se há exigência de métodos para comprovar as características (ensaio, laudo, amostragem).
+- **Embalagem/logística reversa:** (opcional) Verifica se há exigências para sustentabilidade na embalagem ou descarte.
+
+### Por que os pesos foram distribuídos assim
+Os pesos refletem a relevância e impacto de cada critério na análise dos editais:
+- **Eficiência energética** tem maior peso por ser objetivo, mensurável e de grande impacto ambiental.
+- **Normas técnicas** são fundamentais para garantir conformidade e segurança, por isso peso relevante.
+- **Rotulagem/selos** e **verificação/ensaio** são importantes para rastreabilidade e comprovação, mas com peso um pouco menor.
+- **Embalagem/logística** é opcional, pois nem sempre está presente nos editais, mas pode ser relevante em alguns casos.
+
+A soma dos pesos sempre deve ser 1.0 para facilitar a consolidação dos resultados.
+
+### Como usar os critérios e pesos para comparar resultados
+
+No nosso caso, a baseline será a LLM genérica (ex: Gemini, ChatGPT) respondendo apenas ao prompt padronizado, sem pré-processamento ou regras extras. O objetivo é provar que o nosso produto — que utiliza uma LLM integrada a um pipeline de análise, extração de evidências, validação e consolidação — é superior em precisão, auditabilidade e utilidade.
+
+Você pode usar esses critérios e pesos para comparar:
+- **Resultados da LLM (baseline):** Resposta direta da LLM ao prompt, sem regras extras.
+- **Resultados do app (pipeline + LLM):** O app avalia cada critério nos editais, atribuindo "sim", "parcial" ou "não", extraindo evidências e calculando um escore ponderado pelos pesos.
+
+**Passos para comparar:**
+1. Execute o app e obtenha os resultados por critério para cada edital (JSON ou CSV).
+2. Execute a LLM (manual ou via API) com os mesmos prompts e critérios, obtendo os resultados por critério.
+3. Consolide os resultados usando os pesos definidos, gerando um escore final para cada edital.
+4. Compare os escores e as respostas por critério entre o app e a LLM:
+   - Analise diferenças de classificação (sim/parcial/não).
+   - Compare o escore final ponderado.
+   - Avalie evidências e justificativas apresentadas.
+5. Calcule métricas como F1, MAE, coverage para medir a proximidade entre os métodos.
+
+**Vantagem:** Usar critérios e pesos padronizados permite comparar objetivamente diferentes métodos de avaliação, identificar divergências e justificar decisões.
+
+---
+
+## Métricas para comparação dos resultados
+
+Para avaliar e comparar os resultados do app e da LLM, utilize as seguintes métricas:
+
+- **F1-score:** Mede o equilíbrio entre precisão e recall para cada classe (sim, parcial, não). É útil para avaliar a qualidade das classificações, especialmente quando há classes desbalanceadas.
+- **Recall:** Mede a capacidade do método de identificar corretamente todos os casos positivos (ex: todos os critérios realmente presentes). Indica o quanto o método "encontra" o que deveria.
+- **Acurácia:** Mede a proporção de classificações corretas sobre o total de casos avaliados. Indica o quanto o método acerta no geral.
+
+**Como usar:**
+1. Para cada critério, compare as classificações do app e da LLM com a anotação "ouro" (verdade real).
+2. Calcule F1, recall e acurácia para cada critério e para o conjunto total.
+3. Use essas métricas para identificar pontos fortes e fracos de cada abordagem, justificar escolhas e apresentar resultados quantitativos.
+
+Essas métricas permitem uma avaliação objetiva e transparente da performance dos métodos de análise dos editais.
+
+---
+
+## Prompt padronizado para avaliação dos editais
+
+Você é um avaliador técnico de compras públicas sustentáveis.  
+Use SOMENTE o conteúdo das páginas indicadas (com marcadores de início/fim).  
+Se a evidência for insuficiente, responda "insuficiente".
+
+**TAREFA:**
+- Para cada critério abaixo, avalie a presença no edital:
+  - Eficiência energética
+  - Normas técnicas
+  - Rotulagem/selos
+  - Verificação/ensaio
+- Para cada critério, determine:
+  - `presenca`: sim, parcial, não ou insuficiente
+  - `risco_greenwashing`: baixo, médio ou alto
+  - Liste evidências como objetos: doc, pagina, trecho (trechos curtos)
+  - Observações curtas
+
+**Responda em JSON válido, exatamente neste schema:**
+```
+{
+  "criterio": "string",
+  "presenca": "sim|parcial|nao|insuficiente",
+  "risco_greenwashing": "baixo|medio|alto",
+  "evidencias": [{"doc":"NOME_DO_DOCUMENTO", "pagina": 1, "trecho":"texto curto"}],
+  "observacoes": "texto curto"
+}
+```
+
+**CONTEÚDO:**
+{conteudo_paginas}
+
+---
+
+## Sobre a comparação: LLM como baseline
+
+No nosso caso, a baseline será a LLM genérica (ex: Gemini, ChatGPT) respondendo apenas ao prompt padronizado, sem pré-processamento ou regras extras. O objetivo é provar que o nosso produto — que utiliza uma LLM integrada a um pipeline de análise, extração de evidências, validação e consolidação — é superior em precisão, auditabilidade e utilidade.
+
+**Como comparar:**
+- Execute a LLM com o prompt padronizado e registre as respostas (baseline).
+- Execute o app completo, que usa a LLM com pré-processamento, regras e validações.
+- Compare os resultados usando os critérios, pesos e métricas (F1, recall, acurácia).
+- Justifique as vantagens do app: maior precisão, evidências rastreáveis, validação automática, escore consolidado, etc.
+
+Essa abordagem demonstra o valor agregado do seu sistema em relação ao uso simples de uma LLM.
+
+/
+Para quinta 18/09
+ * Criar o Rotulo ouro com uma justificativa plausivel dele ser o padrão ouro
+ * Aumentar para 10 criterios 
+ * Executar para todos os editais no programa e nas LLM (Baseline=Gemini), grok, chatgpt, copilot, claude, deepseek.
+ * E fazer as analises de precisão recall, acurácia, e f1 score para todos os resultados.
+ * Criar graficos do modelo vs baseline(gemini) e modelo vs outras LLM

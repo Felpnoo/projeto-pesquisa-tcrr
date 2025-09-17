@@ -1,0 +1,218 @@
+# MVP sem RAG para Avaliação de Compras Públicas Sustentáveis com LLM (ChatGPT)
+
+## Introdução — Objetivos e Relevância
+
+**Objetivo geral:** Construir e demonstrar, em escala piloto, um método automático para ler ETPs/Editais e avaliar aderência a critérios ambientais (eficiência energética, normas técnicas, rotulagem/selos e verificação/ensaio), gerando:
+- Escore de Aderência (0–100)
+- Flags de greenwashing com evidência rastreável (documento/página/trecho)
+- Comparação com baseline simples (palavras-chave + regex)
+
+**Por que isso é relevante:**
+- **Controle externo:** avaliações manuais são lentas e heterogêneas; o MVP produz relatórios auditáveis, com citações por página, úteis para pareceres e instruções.
+- **Redução de greenwashing:** a ferramenta expõe alegações vagas sem prova, elevando a qualidade dos editais.
+- **Eficiência e transparência:** consolida informações dispersas, padroniza critérios e prioriza auditoria com base em risco.
+- **Viabilidade institucional:** usa ChatGPT via API (sem RAG), com pré-processo mínimo e governança (logs, validações, LGPD).
+
+---
+
+## Equipe e Papéis (com a troca solicitada)
+
+**Felipe — Execução & Relatórios (Responsável operacional)**
+- Subir e rodar o MVP sem RAG (FastAPI) com a API do ChatGPT.
+- Executar `/upload → /scan → /evaluate → /validate → /consolidate → /report` em cada documento.
+- Implementar e rodar o baseline (keywords + regex).
+- Gerar e organizar as saídas: JSON por critério, relatório HTML por documento e CSV de resumo e métricas.
+
+**Juliano — Dados & Anotação (Curadoria e medição)**
+- Coletar 20–30 PDFs (ETPs/Editais) sobre iluminação/eletrônicos.
+- Montar a `amostra.csv` (doc_id, órgão, UF, data, URL de origem).
+- Criar a planilha-ouro (`rotulos_ouro.csv`) e anotar 10–12 documentos (sim/parcial/não por critério + páginas de evidência).
+- Conferir normas/selos citados (apenas código/ano; sem reproduzir conteúdo protegido).
+
+**Bruno — Supervisor & Redação (Accountable)**
+- Definir o escopo final e rubrica curta (4–5 critérios).
+- Escrever Introdução, Métodos, Discussão e Conclusão (artigo ou resumo).
+- Garantir conformidade LGPD, revisar resultados e submeter.
+
+---
+
+## Matriz RACI (Responsabilidades)
+
+| Tarefa                                      | Felipe | Juliano | Bruno |
+|---------------------------------------------|--------|---------|-------|
+| Definir critérios e rubrica curta           |   C    |    C    | A/R   |
+| Coleta de 20–30 PDFs                        |   I    |    R    |  A    |
+| Planilha amostra.csv                        |   I    |    R    |  A    |
+| Anotação “ouro” (10–12 docs)                |   I    |    R    |  A    |
+| Subir/rodar MVP (API)                       |   R    |    I    |  A    |
+| Rodar baseline (regex/keywords)             |   R    |    C    |  A    |
+| Consolidação e métricas (F1, MAE, coverage) |   R    |    C    |  A    |
+| Relatórios HTML e CSVs                      |   R    |    I    |  A    |
+| Revisão LGPD/qualidade                      |   C    |    C    | A/R   |
+| Redação e submissão                         |   C    |    C    | A/R   |
+
+*A=Accountable; R=Responsible; C=Consulted; I=Informed*
+
+---
+
+## Critérios e Rubrica (Escopo Reduzido)
+- **Eficiência energética:** ex.: classe ENCE/Procel, lm/W, consumo kWh/ano.
+- **Normas técnicas:** ABNT/ISO claramente citadas (código e, se houver, ano/versão).
+- **Rotulagem/selos:** selos/etiquetas aceitos; equivalência técnica descrita.
+- **Verificação/ensaio:** como a exigência será conferida (ensaio, amostragem, laudo).
+- *(Opcional)* Embalagem/Logística reversa — requisitos claros e verificáveis.
+
+---
+
+## Regras de Anotação (para “ouro” e baseline)
+- **sim:** critério citado + número (ex.: lm/W, classe A ENCE) ou norma + método de verificação/ensaio.
+- **parcial:** critério citado sem número/norma ou sem verificação.
+- **nao:** não cita ou irrelevante.
+- **Greenwashing alto:** linguagem vaga (“ecológico/verde/amigo do meio ambiente”) sem número/norma/método nas páginas próximas.
+
+---
+
+## Passo a Passo (com exemplos de entregas)
+
+### 1) Coleta e Organização (Juliano)
+- **Onde buscar:**
+  - PNCP (App): https://pncp.gov.br/app/editais
+  - Compras.gov.br: https://www.gov.br/compras/pt-br
+  - Comprasnet (legado): https://comprasnet.gov.br/ConsultaLicitacoes/ConsLicitacaoDia.asp
+- **Como filtrar:** “iluminação”, “luminária”, “LED”, “eletrônico”, período do ano corrente, órgãos e UFs variados.
+- **Pastas:** `data/raw/<orgao>_<ano>_<id>/edital.pdf`
+- **Arquivo:** `amostra.csv` com colunas: `doc_id, orgao, uf, data, url_origem`
+  - Exemplo: `RJ-SME-2025-044,SME-RJ,RJ,2025-08-12,https://pncp.gov.br/app/editais/...`
+
+### 2) Anotação “ouro” (Juliano)
+- **Arquivo:** `rotulos_ouro.csv` com colunas:
+  - `doc_id, orgao, data, criterio, presenca(sim|parcial|nao), paginas_evidencia, observacoes, risco_greenwashing(baixo|medio|alto)`
+- **Exemplo (3 linhas):**
+```
+RJ-SME-2025-044,SME-RJ,2025-08-12,eficiencia_energetica,parcial,"12;13","cita classe A sem método de verificação",medio
+RJ-SME-2025-044,SME-RJ,2025-08-12,normas_tecnicas,sim,"12","ABNT NBR 17094-1:2012",baixo
+RJ-SME-2025-044,SME-RJ,2025-08-12,rotulagem,nao,"","não há",baixo
+```
+- **Conferência de referência (sem copiar conteúdo protegido):**
+  - ABNT Catálogo: https://www.abntcatalogo.com.br/
+  - INMETRO – PBE/ENCE: https://www.gov.br/inmetro/.../tabelas-de-eficiencia-energetica
+  - Como etiquetar: https://www.gov.br/inmetro/.../como-etiquetar-um-produto
+  - PROCEL: https://www.gov.br/mme/pt-br/assuntos/secretarias/sntep/procel
+
+### 3) Execução do MVP e baseline (Felipe)
+- **Projeto:** usar o pacote `mvp_sem_rag_openai` (ou o script de bootstrap já enviado).
+- **Configuração:**
+  ```bash
+  python -m venv .venv && source .venv/bin/activate
+  pip install -r requirements.txt
+  cp .env.example .env  # setar GOOGLE_API_KEY e GOOGLE_MODEL=gemini-pro
+  uvicorn app.main:app --reload
+  ```
+- **Fluxo por documento:**
+  - `/upload` → retorna `doc_path`.
+  - `/scan` (por critério) com palavras-chave, por exemplo:
+    - eficiência: ["eficiência","lm/W","ENCE","Procel","consumo","kWh"]
+    - normas: ["ABNT","NBR","ISO","método de ensaio","conformidade"]
+    - rotulagem: ["selo","rotulagem","etiqueta","ENCE","Procel"]
+    - verificação: ["ensaio","amostragem","laudo","certificado"]
+  - `/evaluate` → obtém JSON por critério com evidências (doc/página/trecho).
+  - `/validate` → checa citação, páginas válidas, consistência.
+  - `/consolidate` → escore (0–100) e flags.
+  - `/report` → relatorio.html.
+- **Baseline (regex/keywords):**
+  - Documento inteiro: se keyword + (número ou ABNT/ISO) na mesma página → sim; se só keyword → parcial; senão → nao.
+  - Saída: `baseline.csv` com `doc_id, criterio, presenca_baseline`.
+
+- **Entregas esperadas (por documento):**
+  - `outputs/<doc_id>/resultados.json` (array por critério)
+  - `outputs/<doc_id>/relatorio.html` (tabela com evidências)
+  - `outputs/summary.csv` (linhas por doc: orgao, data, escore, flags)
+  - Métricas (subset ouro): `T1_F1.csv`, `T2_coverage.csv`, `T3_mae.csv`
+
+### 4) Métricas-alvo (para o subset anotado)
+- **F1 macro (sim/parcial/nao):** MVP vs. baseline.
+- **Coverage de citação:** ≥ 95% das conclusões com evidência.
+- **MAE do escore:** MVP vs. escore humano da planilha “ouro”.
+
+### 5) Regras de qualidade e LGPD
+- Não armazenar PII desnecessária.
+- Citações são obrigatórias para conclusões ≠ “insuficiente”.
+- Guardar versões de prompts, páginas usadas e hash dos PDFs (reprodutibilidade).
+
+---
+
+## Cronograma Realista (08/09 → 26/09)
+
+**Semana 1**
+- 08/09 (Seg) — Kickoff com escopo fechado e rubrica curta (Bruno). Setup do projeto/API (Felipe).
+- 09/09 (Ter) — Coleta 12–15 PDFs (Juliano). Teste do fluxo completo em 3 docs (Felipe).
+- 10/09 (Qua) — Fechar 25–30 PDFs (Juliano). Início da anotação “ouro” (4 docs).
+- 11/09 (Qui) — MVP rodando em 15–20 docs (Felipe). Anotação +3 docs (total 7).
+- 12/09 (Sex) — MVP nos 25–30 docs (Felipe). Anotação +3–5 docs (total 10–12).
+- 13–14/09 (Sáb–Dom) — Reserva: ajustes de regex/prompt; verificação de relatórios.
+
+**Semana 2**
+- 15/09 (Seg) — Métricas (F1, coverage, MAE) no subset anotado (Felipe).
+- 16/09 (Ter) — Tabelas T1–T3 prontas + figuras dos relatórios (Felipe).
+- 17–19/09 (Qua–Sex) — Redação (Bruno): Introdução, Métodos, Resultados, Discussão, Conclusão.
+- 20–21/09 (Sáb–Dom) — Revisão final de texto e anexos; checagem LGPD.
+- 22/09 (Seg) — Padronização de formatação conforme evento/periódico; revisão de referências.
+- 23/09 (Ter) — Ajustes finais; gerar PDF final.
+- 24/09 (Qua) — Leitura crítica final (todos).
+- 25/09 (Qui) — Submissão-teste e checagem do arquivo final.
+- 26/09 (Sex) — Submissão oficial.
+
+---
+
+## Plano B (se o artigo ficar inviável)
+
+**Resumo Expandido (2–4 páginas; 800–1.200 palavras)**
+- Seções: Contexto/Objetivo (1 parágrafo), Método (1 parágrafo), Resultados (1–2 parágrafos com F1/MAE e exemplo de evidência), Implicações/Próximos passos (1 parágrafo).
+
+**Resumo Simples (150–250 palavras)**
+- Estrutura: problema (1–2 frases) → método (1) → número-chave (F1/MAE) (1) → exemplo curto de evidência (página x) (1) → utilidade para pareceres (1).
+
+---
+
+## Checklists de Entrega
+
+**Juliano (Dados & Anotação)**
+- `amostra.csv` completo (até 30 PDFs).
+- `rotulos_ouro.csv` com 10–12 docs anotados (páginas exatas).
+- Conferência de códigos de normas/selos (ABNT/INMETRO/PROCEL) nas observações.
+
+**Felipe (Execução & Relatórios)**
+- `outputs/<doc_id>/resultados.json`, `relatorio.html` para cada doc.
+- `outputs/summary.csv` consolidado.
+- `baseline.csv` (por critério).
+- `T1_F1.csv`, `T2_coverage.csv`, `T3_mae.csv` + 1 gráfico simples (barplot) por Tabela.
+
+**Bruno (Supervisor & Redação)**
+- Revisão de escopo/rubrica e LGPD.
+- Redação do texto (ou resumo), integrando T1–T3 e prints de relatórios.
+- Submissão até 26/09/2025.
+
+---
+
+## Estrutura de Pastas Sugerida
+```
+project/
+  data/
+    raw/<orgao>_<ano>_<id>/edital.pdf
+    amostra.csv
+    rotulos_ouro.csv
+  outputs/
+    <doc_id>/
+      resultados.json
+      relatorio.html
+    summary.csv
+    baseline.csv
+    T1_F1.csv
+    T2_coverage.csv
+    T3_mae.csv
+  paper/
+    texto.docx  (ou .tex/.md)
+    figuras/
+      fig_relatorio_ex1.png
+      fig_relatorio_ex2.png
+```
